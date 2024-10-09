@@ -1,5 +1,6 @@
-const app = require("./.git");
+// const app = require("./.git");
+import { app } from "./app.js"
 
-app.listen(3001, () => {
+app.listen(3000, () => {
   console.log("Server is running. Use our API on port: 3000");
 });
