@@ -46,7 +46,7 @@ router.post('/', async (req, res, next) => {
   const { name, email, phone } = req.body;
   try {
     const result = await addContact(req.body);
-    res.status(2001).json(result);
+    res.status(201).json(result);
   } catch (error) {
     next(error);
   }
@@ -79,8 +79,16 @@ router.put('/:contactId', async (req, res, next) => {
   // res.json({ message: 'template message' });
 
   try {
-    const result = await addContact(req.body);
-    res.status(201).json(result);
+    const result = await updateContact(req.params.contactId, req.body);
+
+    if (!result) {
+      res.status(404).json({ message: "Not found "});
+
+      const error = new Error("Not found");
+      error.status = 404;
+      throw error;
+    }
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }
