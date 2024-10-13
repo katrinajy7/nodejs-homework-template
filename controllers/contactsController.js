@@ -129,5 +129,5 @@ export {
   getContactById,
   addContact,
   deleteContact,
-  updateContact,
+  updateStatusContact,
 };

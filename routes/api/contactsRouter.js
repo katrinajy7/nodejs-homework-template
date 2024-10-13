@@ -4,7 +4,7 @@ import {
   getContactById,
   addContact,
   deleteContact,
-  updateContact,
+  updateStatusContact,
 } from "../../controllers/contactsController.js";
 
 const router = express.Router();
@@ -22,7 +22,7 @@ router.post("/", addContact);
 router.delete("/:contactId", deleteContact);
 
 // corresponds to updateContact
-router.put("/:contactId", updateContact);
+router.put("/:contactId", updateStatusContact);
 
 export { router };
 
