@@ -96,7 +96,7 @@ const deleteContact = async (req, res, next) => {
   return result;
 };
 
-const updateContact = async (req, res, next) => {
+const updateStatusContact = async (req, res, next) => {
   // Gets body in JSON format, updating any name, email и phone fields
   // If there is no body, returns json with key {"message": "missing fields"} and status 400
   // If everything is fine with body, call the updateContact(contactId, body) function (write it) to update the contact in the contacts.json file
