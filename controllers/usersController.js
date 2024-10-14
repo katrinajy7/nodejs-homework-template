@@ -7,6 +7,12 @@ import {
   subscriptionValidation,
 } from "../validation/validation.js";
 
+//NOTES
+//1. validate request body using joi
+//2. validate if email is unique
+// 3. hash the password before saving it to the database
+//4. save the user to the database
+
 const { SECRET_KEY } = process.env;
 
 // 1. validate through frontend validation using Joi
@@ -18,16 +24,20 @@ const signupUser = async (req, res) => {
     const { email, password } = req.body;
 
     const { error } = signupValidation.validate(req.body);
+
+    //Registration validation error
     if (error) {
-      return res.status(400).json({ message: error.message });
+      return res.status(400).json({ message: "missing required email or password field" });
     }
 
     const existingUser = await User.findOne({ email });
+
+    //Registration conflict error
     if (existingUser) {
       return res.status(409).json({ message: "Email in Use" });
     }
 
-    const hashPassword = await bcrypt.hash(password, 10);
+    const hashPassword = await bcrypt.hash(password, 10);//salt 10
 
     const newUser = await User.create({ email, password: hashPassword });
 
@@ -36,13 +46,21 @@ const signupUser = async (req, res) => {
     res.status(201).json({
       user: {
         email: newUser.email,
-        subscription: newUser.subscription,
+        subscription: newUser.password,
       },
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
+//ANOTHER NOTES
+//1. validate request body using joi
+//2. validate if email is existing
+//3. if email exists, we will compare or decrypt the hashedPassword to the password
+//4. if decryption is not successful, send an error saying password is wrong
+//4 if decryption is successful, we wil generate a token to the user
+//5. the user will appy the token as authentication for all the future requests
 
 // 1. validate through frontend validation using Joi
 // 2. find an existing user because existing registered emails can only login
@@ -55,30 +73,39 @@ const loginUser = async (req, res) => {
 
     const { error } = signupValidation.validate(req.body);
     if (error) {
-      return res.status(401).json({ message: error.message });
+      return res.status(400).json({ message: "missing required email or password field" });
     }
 
     const user = await User.findOne({ email });
-    if (!user) {
+    
+    //login user inexistent error
+    if (!existingUser) {
       return res.status(401).json({ message: "Email or password is wrong" });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      user.password);
+
+    //login user password error
     if (!isPasswordValid) {
-      return res.status(401).json({ message: "Email or password is wrong" });
+      return res.status(401).json({ message: "Password is wrong. Click forgot password to reset"    
+      });
     }
 
-    const payload = { id: user._id };
+    // _id is coming form MongoDB
+    // id wil be for the JWT
+    const payload = { id: exitingUser._id };
     // this generates a unique signature for our web token that only the person with the correct secret key can decode
     const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "23h" });
 
-    await User.findByIdAndUpdate(user._id, { token });
+    await User.findByIdAndUpdate(existingUser._id, { token: token });
 
     res.status(200).json({
       token: token,
       user: {
-        email: user.email,
-        subscription: user.subscription,
+        email: existingUser.email,
+        // subscription: user.subscription,
       },
     });
   } catch (err) {
