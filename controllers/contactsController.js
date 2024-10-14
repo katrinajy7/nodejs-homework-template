@@ -137,18 +137,17 @@ const updateStatusContact = async (req, res) => {
     const { contactId } = req.params;
 
     const result = await Contact.findByIdAndUpdate(contactId, req.body, {
-      new: true,
+      favorite: true,
     });
 
     if (!result) {
       return res.status(404).json({ message: "contact not found"});
     }
 
-    res.status(200).json(result);
-  } catch (error) {
-    next(error);
-  }
-   
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ message: "err.message"});
+  } 
 };
 
 export {
@@ -157,4 +156,5 @@ export {
   addContact,
   deleteContact,
   updateContact,
+  updateStatusContact,
 };
