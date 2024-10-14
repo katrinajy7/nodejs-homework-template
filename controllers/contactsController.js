@@ -1,5 +1,8 @@
 import { Contact } from "../models/contactsModel.js";
-
+import {
+  contactValidation,
+  favoriteValidation,
+} from "../validation/validation.js";
 // This is how the MVC Architecture looks like
 
 const getAllContacts = async (_req, res, next) => {
@@ -27,9 +30,12 @@ const getContactById = async (req, res, next) => {
 
   try {
     const { contactId } = req.params;
-    const result = Contact.findOne(contactId);
-    // const result = await getContactById(contactId);
-    //  const result = await getContactById(req.params.contactId); --->>> This is if you dont want to destructure the request parameter
+
+    // this allows for a more flexible query allowing us to pass different fields
+    const result = Contact.findOne(contactId );
+
+    // this is strictly querying using the id
+    // const result = Contact.findById(contactId);
 
     // early return pattern means we want to skip our function body early if the required constants are falsy
 
@@ -96,7 +102,7 @@ const deleteContact = async (req, res, next) => {
   return result;
 };
 
-const updateStatusContact = async (req, res, next) => {
+const updateContact = async (req, res, next) => {
   // Gets body in JSON format, updating any name, email и phone fields
   // If there is no body, returns json with key {"message": "missing fields"} and status 400
   // If everything is fine with body, call the updateContact(contactId, body) function (write it) to update the contact in the contacts.json file
@@ -113,14 +119,31 @@ const updateStatusContact = async (req, res, next) => {
       req.params.contactId,
       req.body
     );
-
-    if (!result) {
-      res.status(404).json({ message: "Not found" });
-    }
-
+    
     res.status(200).json(result);
   } catch (error) {
     next(error);
+  }
+};
+
+const updateStatusContact = async (req, res) => {
+  //validate the favorite field
+  const { error } = favoriteValidation.validate(req.body);
+  if (error) {
+    return res.status(400).json({message: "missing field favorite"});
+  }
+
+  try {
+    const { contactId } = req.params;
+
+    const result = await Contact.findByIdAndUpdate(contactId, req.body {
+      new: true,
+    });
+
+    if (!result) {
+      return res.status(404).json({ message: "contact not found"})
+    }
+   
   }
 };
 
@@ -129,5 +152,5 @@ export {
   getContactById,
   addContact,
   deleteContact,
-  updateStatusContact,
+  updateContact,
 };
