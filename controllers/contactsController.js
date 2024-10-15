@@ -1,8 +1,8 @@
 import { Contact } from "../models/contactsModel.js";
-import {
-  contactValidation,
-  favoriteValidation,
-} from "../validation/validation.js";
+// import {
+//   contactValidation,
+//   favoriteValidation,
+// } from "../validation/validation.js";
 // This is how the MVC Architecture looks like
 
 const getAllContacts = async (_req, res, next) => {

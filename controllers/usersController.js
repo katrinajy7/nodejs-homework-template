@@ -46,7 +46,7 @@ const signupUser = async (req, res) => {
     res.status(201).json({
       user: {
         email: newUser.email,
-        subscription: newUser.password,
+        subscription: newUser.subscription,
       },
     });
   } catch (err) {
@@ -105,7 +105,7 @@ const loginUser = async (req, res) => {
       token: token,
       user: {
         email: existingUser.email,
-        // subscription: user.subscription,
+        subscription: user.subscription,
       },
     });
   } catch (err) {

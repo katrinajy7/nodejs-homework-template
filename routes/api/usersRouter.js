@@ -5,7 +5,7 @@ import {
   logoutUser,
   getCurrentUsers,
   updateUserSubscription,
-} from "../../controllers/contactsController.js";
+} from "../../controllers/usersController.js";
 import { authenticateToken } from "../../middlewares/auth.js";
 
 const router = express.Router();
