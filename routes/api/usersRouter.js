@@ -34,7 +34,7 @@ router.patch("/", authenticateToken, updateUserSubscription);
 router.patch(
   "/avatars",
   authenticateToken,
-  upload.single("avatar"),
+  upload.single("avatarURL"),
   updateAvatar
 );
 
