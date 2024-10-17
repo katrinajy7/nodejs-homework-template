@@ -6,12 +6,15 @@ import { User } from "../models/usersModel.js";
 import {
   signupValidation,
   subscriptionValidation,
+  emailValidation,
 } from "../validation/validation.js";
 import { Jimp } from "jimp";
 import path from "path";
 import fs from "fs/promises";
+import { sendEmail } from "../helpers/sendEmail.js";
+import { nanoid } from "nanoid";
 
-const { SECRET_KEY } = process.env;
+const { SECRET_KEY, PORT } = process.env;
 
 // 1. validate through frontend validation using Joi
 // 2. find an existing user to prevent a duplicate email signup
@@ -23,7 +26,7 @@ const signupUser = async (req, res) => {
 
     const { error } = signupValidation.validate(req.body);
     if (error) {
-      return res.status(400).json({ message: "missing required email or password field" });
+      return res.status(400).json({ message: error.message });
     }
 
     const existingUser = await User.findOne({ email });
@@ -38,10 +41,23 @@ const signupUser = async (req, res) => {
     // this avatar is temporary and placeholder only for when the user initially signs up
     const avatarURL = gravatar.url(email, { protocol: "http" });
 
+    // WE NEED TO UPDATE THE SIGNUP CONTROLLER SO THAT IT INCLUDES A VERIFY AND VERIFICATION TOKEN FIELDS WHEN THE USER SIGNS UP
+
+    const verificationToken = nanoid();
+
+    // ADDITIONALLY, UPON SIGNUP, THE NODEMAILER MUST SEND A VERIFICATION EMAIL TO THE EMAIL BEING SIGNED UP
+    // Send an email to the user's mail and specify a link to verify the email (/users/verify/:verificationToken) in the message
+    await sendEmail({
+      to: email, // recipient
+      subject: "Action Required: Verify Your Email",
+      html: `<a target="_blank" href="http://localhost:${PORT}/api/users/verify/${verificationToken}">Click to verify email</a>`,
+    });
+
     const newUser = await User.create({
       email,
       password: hashPassword,
       avatarURL,
+      verificationToken,
     });
 
     // res.status().json() is our way of resolving the HTTP request promise
@@ -51,6 +67,7 @@ const signupUser = async (req, res) => {
         email: newUser.email,
         subscription: newUser.subscription,
         avatarURL: newUser.avatarURL,
+        verificationToken,
       },
     });
   } catch (err) {
@@ -117,7 +134,7 @@ const logoutUser = async (req, res) => {
 const getCurrentUsers = async (req, res) => {
   try {
     const { email, subscription } = req.user;
-    res.json({
+    res.status(200).json({
       email,
       subscription,
     });
@@ -143,7 +160,7 @@ const updateUserSubscription = async (req, res) => {
       new: true,
     });
 
-    res.json({
+    res.status(200).json({
       email: updatedUser.email,
       subscription: updatedUser.subscription,
     });
@@ -214,6 +231,75 @@ const updateAvatar = async (req, res) => {
   }
 };
 
+// 1. Extract the verification token from req.params
+// 2. Look for the verification token in the User document
+// 3. If the user does not exist, return status 400
+// 4. If it exists we need to update the value of the verify field to true
+const verifyEmail = async (req, res) => {
+  const { verificationToken } = req.params;
+
+  try {
+    const user = await User.findOne({ verificationToken });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "User not found! Please try again. " });
+    }
+
+    await User.findByIdAndUpdate(user._id, {
+      verify: true,
+      verificationToken: null,
+    });
+
+    res.status(200).json({
+      message: "Verification successful",
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error happened. " });
+  }
+};
+
+const resendVerifyEmail = async (req, res) => {
+  const { email } = req.body;
+
+  // Resending email validation error
+  const { error } = emailValidation.validate(req.body);
+  if (error) {
+    return res.status(400).json({ message: error.message });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    // Email not found
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "The provided email address could not be found" });
+    }
+
+    // Resend email for verified user
+    if (user.verify) {
+      return res
+        .status(400)
+        .json({ message: "Verification has already been passed" });
+    }
+
+    await sendEmail({
+      to: email,
+      subject: "Action Required: Verify Your Email",
+      html: `<a target="_blank" href="http://localhost:${PORT}/api/users/verify/${user.verificationToken}">Click to verify email</a>`,
+    });
+
+    // Resending a email success response
+    res.status(200).json({ message: "Verification email sent" });
+  } catch (error) {
+    // Internal server error handling
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export {
   signupUser,
   loginUser,
@@ -221,4 +307,6 @@ export {
   getCurrentUsers,
   updateUserSubscription,
   updateAvatar,
+  verifyEmail,
+  resendVerifyEmail,
 };

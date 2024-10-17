@@ -6,22 +6,23 @@ import {
   deleteContact,
   updateContact,
 } from "../../controllers/contactsController.js";
+import { authenticateToken } from "../../middlewares/auth.js"; // Import the authenticateToken middleware
 
 const router = express.Router();
 
 // corresponds to listContacts
-router.get("/", getAllContacts);
+router.get("/", authenticateToken, getAllContacts);
 
 // corresponds to getContactById
-router.get("/:contactId", getContactById);
+router.get("/:contactId", authenticateToken, getContactById);
 
 // corresponds to addContact
-router.post("/", addContact);
+router.post("/", authenticateToken, addContact);
 
 // corresponds to removeContact
-router.delete("/:contactId", deleteContact);
+router.delete("/:contactId", authenticateToken, deleteContact);
 
 // corresponds to updateContact
-router.put("/:contactId", updateContact);
+router.put("/:contactId", authenticateToken, updateContact);
 
 export { router };

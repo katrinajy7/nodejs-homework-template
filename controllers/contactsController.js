@@ -29,7 +29,7 @@ const getContactById = async (req, res, next) => {
     const { contactId } = req.params;
 
     // this allows for a more flexible query allowing us to pass different fields
-    const result = Contact.findOne({ _id: contactId });
+    const result = await Contact.findOne({ _id: contactId });
 
     // this is strictly querying using the id
     // const result = Contact.findById(contactId);

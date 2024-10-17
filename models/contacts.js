@@ -67,10 +67,4 @@ const updateContact = async (id, { name, email, phone }) => {
 };
 
 // prettier-ignore
-export { 
-  listContacts,
-  getContactById,
-  removeContact,
-  addContact,
-  updateContact 
-  };
+export { listContacts, getContactById, removeContact, addContact, updateContact };
