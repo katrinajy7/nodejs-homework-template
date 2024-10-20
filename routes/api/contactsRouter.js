@@ -1,28 +1,47 @@
 import express from "express";
 import {
-  getAllContacts,
-  getContactById,
-  addContact,
-  deleteContact,
-  updateContact,
+  signupUser,
+  loginUser,
+  logoutUser,
+  getCurrentUsers,
+  updateUserSubscription,
+  updateAvatar,
+  verifyEmail,
+  resendVerifyEmail,
 } from "../../controllers/contactsController.js";
-import { authenticateToken } from "../../middlewares/auth.js"; // Import the authenticateToken middleware
+import { authenticateToken } from "../../middlewares/auth.js";
+import { upload } from "../../middlewares/upload.js";
 
 const router = express.Router();
 
-// corresponds to listContacts
-router.get("/", authenticateToken, getAllContacts);
+// FOR PUT, PATCH and POST requests always do frontend validation before saving to database
 
-// corresponds to getContactById
-router.get("/:contactId", authenticateToken, getContactById);
+/* POST: // http://localhost:3000/api/users/signup */
+router.post("/signup", signupUser);
 
-// corresponds to addContact
-router.post("/", authenticateToken, addContact);
+/* POST: // http://localhost:3000/api/users/login */
+router.post("/login", loginUser);
 
-// corresponds to removeContact
-router.delete("/:contactId", authenticateToken, deleteContact);
+/* GET: // http://localhost:3000/api/users/logout */
+router.get("/logout", authenticateToken, logoutUser);
 
-// corresponds to updateContact
-router.put("/:contactId", authenticateToken, updateContact);
+/* GET: // http://localhost:3000/api/users/current */
+router.get("/current", authenticateToken, getCurrentUsers);
+
+/* PATCH: // http://localhost:3000/api/users/ */
+router.patch("/", authenticateToken, updateUserSubscription);
+
+// lets import the upload middleware here that we created in upload.js
+// lets call the single() function of multer to restrict the file upload to one file per model or schema field;
+router.patch(
+  "/avatars",
+  authenticateToken,
+  upload.single("avatar"),
+  updateAvatar
+);
+
+router.get("/verify/:verificationToken", verifyEmail);
+
+router.post("/verify", authenticateToken, resendVerifyEmail);
 
 export { router };
