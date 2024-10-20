@@ -1,5 +1,4 @@
-import { Contact } from "../models/contactsModel.js";
-import { contactValidation } from "../validation/validation.js";
+import { Contact } from "../models/";
 
 // This is how the MVC Architecture looks like
 
@@ -96,6 +95,8 @@ const deleteContact = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+
+  return result;
 };
 
 const updateContact = async (req, res, next) => {
