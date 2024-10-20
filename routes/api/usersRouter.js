@@ -8,7 +8,7 @@ import {
   updateAvatar,
   verifyEmail,
   resendVerifyEmail,
-} from "../../controllers/contactsController.js";
+} from "../../controllers/usersController.js";
 import { authenticateToken } from "../../middlewares/auth.js";
 import { upload } from "../../middlewares/upload.js";
 
